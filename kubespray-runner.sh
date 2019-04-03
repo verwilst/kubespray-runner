@@ -37,11 +37,16 @@ echo "  [+] Configuring Kubespray ..."
 rm -rf ${KUBESPRAYDIR}/inventory/local
 cp -rf ${PWD} ${KUBESPRAYDIR}/inventory/local
 
+if [ -f ${KUBESPRAYDIR}/inventory/local/ansible.cfg ]; then
+	cat ${KUBESPRAYDIR}/inventory/local/ansible.cfg >> ${KUBESPRAYDIR}/ansible.cfg
+fi
+
 echo "  [+] Running $PLAYBOOK"
 ansible-playbook -i ${KUBESPRAYDIR}/inventory/local/hosts.ini ${KUBESPRAYDIR}/$PLAYBOOK
 
+
 echo "  [+] Cleaning up ..."
-#rm -rf ${TMPDIR}
+rm -rf ${TMPDIR}
 
 echo ""
 
