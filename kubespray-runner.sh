@@ -41,7 +41,10 @@ if [ -f ${KUBESPRAYDIR}/inventory/local/ansible.cfg ]; then
 	cat ${KUBESPRAYDIR}/inventory/local/ansible.cfg >> ${KUBESPRAYDIR}/ansible.cfg
 fi
 
-echo "  [+] Running $PLAYBOOK"
+echo "  [+] Installing requirements ..."
+pip install -r ${KUBESPRAYDIR}/requirements.txt
+
+echo "  [+] Running $PLAYBOOK ..."
 ansible-playbook -i ${KUBESPRAYDIR}/inventory/local/hosts.ini ${KUBESPRAYDIR}/$PLAYBOOK
 
 echo "  [+] Cleaning up ..."
