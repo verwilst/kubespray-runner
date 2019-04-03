@@ -38,7 +38,7 @@ rm -rf ${KUBESPRAYDIR}/inventory/local
 cp -rf ${PWD} ${KUBESPRAYDIR}/inventory/local
 
 echo "  [+] Running $PLAYBOOK"
-ansible-playbook -i ${KUBESPRAYDIR}/inventory/local/hosts.ini ${KUBESPRAYDIR}/$PLAYBOOK
+ansible-playbook -i ${KUBESPRAYDIR}/inventory/local/hosts.ini ${KUBESPRAYDIR}/$PLAYBOOK -vvv
 
 echo "  [+] Cleaning up ..."
 #rm -rf ${TMPDIR}
