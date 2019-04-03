@@ -42,8 +42,7 @@ if [ -f ${KUBESPRAYDIR}/inventory/local/ansible.cfg ]; then
 fi
 
 echo "  [+] Running $PLAYBOOK"
-ansible-playbook -i ${KUBESPRAYDIR}/inventory/local/hosts.ini ${KUBESPRAYDIR}/$PLAYBOOK -vvv
-
+ansible-playbook -i ${KUBESPRAYDIR}/inventory/local/hosts.ini ${KUBESPRAYDIR}/$PLAYBOOK
 
 echo "  [+] Cleaning up ..."
 rm -rf ${TMPDIR}
