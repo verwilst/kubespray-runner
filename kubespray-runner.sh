@@ -10,6 +10,15 @@ source $PWD/.kubespray-runner.yml || exit 1
 
 PLAYBOOK=${1:-cluster.yml}
 
+if [ "${PLAYBOOK}" == "cluster.yml" ]; then
+	APIHOST=`grep api001 -m 1 $PWD/hosts.ini`
+	ssh core@${APIHOST} test -f /opt/bin/kubectl
+	if [ $? -eq 0 ]; then
+		echo "Cluster already exists. Quitting."
+		exit 1
+	fi
+fi
+
 echo ""
 while echo $agree | grep -ivE "^[yn]$" &> /dev/null; do 
 	read -p "Ready to run Kubespray $RELEASE on playbook $PLAYBOOK. Proceed? [Y/n] " agree
