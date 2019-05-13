@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 if [ ! -f $PWD/.kubespray-runner.yml ]; then
 	echo "No .kubespray-runner.yml found in current directory"
@@ -11,12 +11,21 @@ source $PWD/.kubespray-runner.yml || exit 1
 PLAYBOOK=${1:-cluster.yml}
 
 if [ "${PLAYBOOK}" == "cluster.yml" ]; then
-	APIHOST=`grep api001 -m 1 $PWD/hosts.ini`
-	ssh core@${APIHOST} test -f /opt/bin/kubectl
+	APIHOST=`grep "\[kube-master\]" -A 1 ${PWD}/hosts.ini | tail -n1`
+
+	ansible all -i ${PWD}/hosts.ini -a "uptime" &> /dev/null
+        if [ $? -ne 0 ]; then
+                echo "Cluster not reachable. Quitting."
+                exit 1
+        fi
+	echo "  [+] All hosts in cluster reachable."
+
+	ansible ${APIHOST} -i ${PWD}/hosts.ini -a "test -f /usr/bin/kubectl" &> /dev/null 
 	if [ $? -eq 0 ]; then
 		echo "Cluster already exists. Quitting."
 		exit 1
 	fi
+	echo "  [+] New cluster."
 fi
 
 echo ""
@@ -34,6 +43,10 @@ echo ""
 
 TMPDIR=`mktemp -d`
 
+echo "  [+] Installing dependencies"
+wget https://github.com/mikefarah/yq/releases/download/2.3.0/yq_linux_amd64 -O ${TMPDIR}/yq
+chmod +x ${TMPDIR}/yq
+
 echo "  [+] Downloading Kubespray ${RELEASE} ..."
 wget -q -O ${TMPDIR}/${RELEASE}.tar.gz https://codeload.github.com/kubernetes-sigs/kubespray/tar.gz/${RELEASE}
 
@@ -42,22 +55,36 @@ tar -C ${TMPDIR} -xzf ${TMPDIR}/${RELEASE}.tar.gz
 
 KUBESPRAYDIR=$(dirname `find ${TMPDIR} -maxdepth 2 -name "README.md" | head -n1`)
 
-echo "  [+] Configuring Kubespray ..."
-rm -rf ${KUBESPRAYDIR}/inventory/local
-cp -rf ${PWD} ${KUBESPRAYDIR}/inventory/local
+echo "  [+] Setting up Kubespray ..."
+mkdir -p ${KUBESPRAYDIR}/inventory/merged
+cp -rf ${KUBESPRAYDIR}/inventory/sample/group_vars ${KUBESPRAYDIR}/inventory/merged/
 
-if [ -f ${KUBESPRAYDIR}/inventory/local/ansible.cfg ]; then
-	cat ${KUBESPRAYDIR}/inventory/local/ansible.cfg >> ${KUBESPRAYDIR}/ansible.cfg
+echo "  [+] Configuring Kubespray ..."
+for f in `find ${KUBESPRAYDIR}/inventory/merged -type f -name "*.yml"`; do
+	RELATIVE_FILE="${f/"${KUBESPRAYDIR}/inventory/merged/"/}"
+	if [ -f "${RELATIVE_FILE}" ]; then
+		if [ -s "$f" ]; then
+			cp -f "${RELATIVE_FILE}" "$f"
+		else
+			echo ${TMPDIR}/yq m -i "$f" "${RELATIVE_FILE}"
+			${TMPDIR}/yq m -i "$f" "${RELATIVE_FILE}"
+		fi
+	fi
+done
+
+cp -f ${PWD}/hosts.ini ${KUBESPRAYDIR}/inventory/merged/hosts.ini
+
+echo "  [+] Configuring Ansible ..."
+if [ -f ${PWD}/ansible.cfg ]; then
+	cat ${PWD}/ansible.cfg >> ${KUBESPRAYDIR}/ansible.cfg
 fi
 
 echo "  [+] Installing requirements ..."
 pip install -r ${KUBESPRAYDIR}/requirements.txt
 
 echo "  [+] Running $PLAYBOOK ..."
-ansible-playbook -i ${KUBESPRAYDIR}/inventory/local/hosts.ini ${KUBESPRAYDIR}/$PLAYBOOK
+ansible-playbook -i ${KUBESPRAYDIR}/inventory/merged/hosts.ini ${KUBESPRAYDIR}/$PLAYBOOK
 
 echo "  [+] Cleaning up ..."
 rm -rf ${TMPDIR}
-
 echo ""
-
