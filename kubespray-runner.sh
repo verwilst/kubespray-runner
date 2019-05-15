@@ -12,6 +12,16 @@ PLAYBOOK=${1:-cluster.yml}
 
 TMPDIR=`mktemp -d`
 
+echo "  [+] Installing dependencies"
+wget https://github.com/mikefarah/yq/releases/download/2.3.0/yq_linux_amd64 -O ${TMPDIR}/yq
+chmod +x ${TMPDIR}/yq
+
+which ansible &> /dev/null
+if [ $? -ne 0 ]; then
+        apt-get install -y --no-install-recommends python-pip
+        pip install ansible
+fi
+
 if [ "${PLAYBOOK}" == "cluster.yml" ]; then
 	APIHOST=`grep "\[kube-master\]" -A 1 ${PWD}/hosts.ini | tail -n1`
 
@@ -44,16 +54,6 @@ if [ "${agree}" == "n" ]; then
 	exit 0
 fi
 echo ""
-
-echo "  [+] Installing dependencies"
-wget https://github.com/mikefarah/yq/releases/download/2.3.0/yq_linux_amd64 -O ${TMPDIR}/yq
-chmod +x ${TMPDIR}/yq
-
-which ansible &> /dev/null
-if [ $? -ne 0 ]; then
-        apt-get install -y --no-install-recommends python-pip
-        pip install ansible
-fi
 
 echo "  [+] Downloading Kubespray ${RELEASE} ..."
 wget -q -O ${TMPDIR}/${RELEASE}.tar.gz https://codeload.github.com/kubernetes-sigs/kubespray/tar.gz/${RELEASE}
