@@ -10,18 +10,22 @@ source $PWD/.kubespray-runner.yml || exit 1
 
 PLAYBOOK=${1:-cluster.yml}
 
+TMPDIR=`mktemp -d`
+
 if [ "${PLAYBOOK}" == "cluster.yml" ]; then
 	APIHOST=`grep "\[kube-master\]" -A 1 ${PWD}/hosts.ini | tail -n1`
 
-	ansible all -i ${PWD}/hosts.ini -a "uptime" > /dev/null
+	ansible all -i ${PWD}/hosts.ini -a "uptime" &> ${TMPDIR}/stdout
         if [ $? -ne 0 ]; then
+		cat ${TMPDIR}/stdout
                 echo "Cluster not reachable. Quitting."
                 exit 1
         fi
 	echo "  [+] All hosts in cluster reachable."
 
-	ansible ${APIHOST} -i ${PWD}/hosts.ini -a "test -f /usr/bin/kubectl" > /dev/null 
+	ansible ${APIHOST} -i ${PWD}/hosts.ini -a "test -f /usr/bin/kubectl" &> ${TMPDIR}/stdout
 	if [ $? -eq 0 ]; then
+		cat ${TMPDIR}/stdout
 		echo "Cluster already exists. Quitting."
 		exit 1
 	fi
@@ -40,8 +44,6 @@ if [ "${agree}" == "n" ]; then
 	exit 0
 fi
 echo ""
-
-TMPDIR=`mktemp -d`
 
 echo "  [+] Installing dependencies"
 wget https://github.com/mikefarah/yq/releases/download/2.3.0/yq_linux_amd64 -O ${TMPDIR}/yq
