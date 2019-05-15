@@ -22,14 +22,6 @@ if [ "${PLAYBOOK}" == "cluster.yml" ]; then
                 exit 1
         fi
 	echo "  [+] All hosts in cluster reachable."
-
-	ansible ${APIHOST} -i ${PWD}/hosts.ini -a "test -f /usr/bin/kubectl" &> ${TMPDIR}/stdout
-	if [ $? -eq 0 ]; then
-		cat ${TMPDIR}/stdout
-		echo "Cluster already exists. Quitting."
-		exit 1
-	fi
-	echo "  [+] New cluster."
 fi
 
 echo ""
