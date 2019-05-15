@@ -49,6 +49,12 @@ echo "  [+] Installing dependencies"
 wget https://github.com/mikefarah/yq/releases/download/2.3.0/yq_linux_amd64 -O ${TMPDIR}/yq
 chmod +x ${TMPDIR}/yq
 
+which ansible &> /dev/null
+if [ $? -ne 0 ]; then
+        apt-get install -y --no-install-recommends python-pip
+        pip install ansible
+fi
+
 echo "  [+] Downloading Kubespray ${RELEASE} ..."
 wget -q -O ${TMPDIR}/${RELEASE}.tar.gz https://codeload.github.com/kubernetes-sigs/kubespray/tar.gz/${RELEASE}
 
