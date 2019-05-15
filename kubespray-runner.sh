@@ -13,14 +13,14 @@ PLAYBOOK=${1:-cluster.yml}
 if [ "${PLAYBOOK}" == "cluster.yml" ]; then
 	APIHOST=`grep "\[kube-master\]" -A 1 ${PWD}/hosts.ini | tail -n1`
 
-	ansible all -i ${PWD}/hosts.ini -a "uptime" &> /dev/null
+	ansible all -i ${PWD}/hosts.ini -a "uptime" > /dev/null
         if [ $? -ne 0 ]; then
                 echo "Cluster not reachable. Quitting."
                 exit 1
         fi
 	echo "  [+] All hosts in cluster reachable."
 
-	ansible ${APIHOST} -i ${PWD}/hosts.ini -a "test -f /usr/bin/kubectl" &> /dev/null 
+	ansible ${APIHOST} -i ${PWD}/hosts.ini -a "test -f /usr/bin/kubectl" > /dev/null 
 	if [ $? -eq 0 ]; then
 		echo "Cluster already exists. Quitting."
 		exit 1
