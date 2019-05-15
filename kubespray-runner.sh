@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ ! -f $PWD/.kubespray-runner.yml ]; then
-	echo "No .kubespray-runner.yml found in current directory"
+if [ ! -f $PWD/kubespray.version ]; then
+	echo "No kubespray.version found in current directory"
 	echo "Quitting."
 	exit 1
 fi
