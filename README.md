@@ -24,3 +24,10 @@ mkdir -p group_vars/all
 echo "loadbalancer_apiserver_localhost: true" > group_vars/all/all.yml
 ```
 
+## Run kubespray-runner
+
+docker run -it --rm -v `pwd`:/app -w /app verwilst/kubespray-runner:latest kubespray-runner.sh cluster.yml
+
+### Add .ssh directory if needed
+
+Add "-v ~/.ssh:/root/.ssh" to make sure your SSH keys work.
