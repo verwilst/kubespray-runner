@@ -6,7 +6,7 @@ if [ ! -f $PWD/.kubespray-runner.yml ]; then
 	exit 1
 fi
 
-source $PWD/.kubespray-runner.yml || exit 1
+VERSION=`cat $PWD/kubespray.version`
 
 PLAYBOOK=${1:-cluster.yml}
 
@@ -44,7 +44,7 @@ fi
 
 echo ""
 while echo $agree | grep -ivE "^[yn]$" &> /dev/null; do 
-	read -p "Ready to run Kubespray $RELEASE on playbook $PLAYBOOK. Proceed? [Y/n] " agree
+	read -p "Ready to run Kubespray ${VERSION} on playbook $PLAYBOOK. Proceed? [Y/n] " agree
 	agree=${agree:-Y}
 	agree=${agree,,}
 done
@@ -55,11 +55,11 @@ if [ "${agree}" == "n" ]; then
 fi
 echo ""
 
-echo "  [+] Downloading Kubespray ${RELEASE} ..."
-wget -q -O ${TMPDIR}/${RELEASE}.tar.gz https://codeload.github.com/kubernetes-sigs/kubespray/tar.gz/${RELEASE}
+echo "  [+] Downloading Kubespray ${VERSION} ..."
+wget -q -O ${TMPDIR}/${VERSION}.tar.gz https://codeload.github.com/kubernetes-sigs/kubespray/tar.gz/${VERSION}
 
 echo "  [+] Unpacking tarball ..."
-tar -C ${TMPDIR} -xzf ${TMPDIR}/${RELEASE}.tar.gz
+tar -C ${TMPDIR} -xzf ${TMPDIR}/${VERSION}.tar.gz
 
 KUBESPRAYDIR=$(dirname `find ${TMPDIR} -maxdepth 2 -name "README.md" | head -n1`)
 
