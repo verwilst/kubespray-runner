@@ -45,7 +45,7 @@ tar -C ${TMPDIR} -xzf ${TMPDIR}/${VERSION}.tar.gz
 
 KUBESPRAYDIR=$(dirname `find ${TMPDIR} -maxdepth 2 -name "README.md" | head -n1`)
 
-chmod o-w ${KUBESPRAYDIR}
+chmod o-w ${KUBESPRAYDIR} ${PWD}
 
 echo "  [+] Setting up Kubespray ..."
 mkdir -p ${KUBESPRAYDIR}/inventory/merged
