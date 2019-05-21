@@ -6,35 +6,19 @@ if [ ! -f $PWD/kubespray.version ]; then
 	exit 1
 fi
 
-VERSION=`cat $PWD/kubespray.version`
-
-PLAYBOOK=${1:-cluster.yml}
-
+VERSION=`cat ${PWD}/kubespray.version`
 TMPDIR=`mktemp -d`
 
-if [ "${PLAYBOOK}" == "cluster.yml" ]; then
-	APIHOST=`grep "\[kube-master\]" -A 1 ${PWD}/hosts.ini | tail -n1`
+APIHOST=`grep "\[kube-master\]" -A 1 ${PWD}/hosts.ini | tail -n1`
 
-	ansible all -i ${PWD}/hosts.ini -a "uptime" &> ${TMPDIR}/stdout
-        if [ $? -ne 0 ]; then
-		cat ${TMPDIR}/stdout
-                echo "Cluster not reachable. Quitting."
-                exit 1
-        fi
-	echo "  [+] All hosts in cluster reachable."
+ansible all -i ${PWD}/hosts.ini -a "uptime" &> ${TMPDIR}/stdout
+if [ $? -ne 0 ]; then
+	cat ${TMPDIR}/stdout
+	echo "Cluster not reachable. Quitting."
+	exit 1
 fi
+echo "  [+] All hosts in cluster reachable."
 
-echo ""
-while echo $agree | grep -ivE "^[yn]$" &> /dev/null; do 
-	read -p "Ready to run Kubespray ${VERSION} on playbook $PLAYBOOK. Proceed? [Y/n] " agree
-	agree=${agree:-Y}
-	agree=${agree,,}
-done
-
-if [ "${agree}" == "n" ]; then
-	echo "Quitting."
-	exit 0
-fi
 echo ""
 
 echo "  [+] Downloading Kubespray ${VERSION} ..."
@@ -74,8 +58,9 @@ fi
 echo "  [+] Installing requirements ..."
 pip install -r ${KUBESPRAYDIR}/requirements.txt
 
-echo "  [+] Running $PLAYBOOK ..."
-ansible-playbook -i ${KUBESPRAYDIR}/inventory/merged/hosts.ini ${KUBESPRAYDIR}/$PLAYBOOK
+echo "  [+] Running playbook ..."
+cd ${KUBESPRAYDIR}
+ansible-playbook -i ${KUBESPRAYDIR}/inventory/merged/hosts.ini ${@}
 
 echo "  [+] Cleaning up ..."
 rm -rf ${TMPDIR}
