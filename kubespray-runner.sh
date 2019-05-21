@@ -1,17 +1,19 @@
 #!/bin/bash
 
-if [ ! -f $PWD/kubespray.version ]; then
+BASE="${PWD}"
+
+if [ ! -f ${BASE}/kubespray.version ]; then
 	echo "No kubespray.version found in current directory"
 	echo "Quitting."
 	exit 1
 fi
 
-VERSION=`cat ${PWD}/kubespray.version`
+VERSION=`cat ${BASE}/kubespray.version`
 TMPDIR=`mktemp -d`
 
-APIHOST=`grep "\[kube-master\]" -A 1 ${PWD}/hosts.ini | tail -n1`
+APIHOST=`grep "\[kube-master\]" -A 1 ${BASE}/hosts.ini | tail -n1`
 
-ansible all -i ${PWD}/hosts.ini -a "uptime" &> ${TMPDIR}/stdout
+ansible all -i ${BASE}/hosts.ini -a "uptime" &> ${TMPDIR}/stdout
 if [ $? -ne 0 ]; then
 	cat ${TMPDIR}/stdout
 	echo "Cluster not reachable. Quitting."
@@ -29,7 +31,7 @@ tar -C ${TMPDIR} -xzf ${TMPDIR}/${VERSION}.tar.gz
 
 KUBESPRAYDIR=$(dirname `find ${TMPDIR} -maxdepth 2 -name "README.md" | head -n1`)
 
-chmod o-w ${KUBESPRAYDIR} ${PWD}
+chmod o-w ${KUBESPRAYDIR} ${BASE}
 
 echo "  [+] Setting up Kubespray ..."
 mkdir -p ${KUBESPRAYDIR}/inventory/merged
@@ -48,11 +50,11 @@ for f in `find ${KUBESPRAYDIR}/inventory/merged -type f -name "*.yml"`; do
 	fi
 done
 
-cp -f ${PWD}/hosts.ini ${KUBESPRAYDIR}/inventory/merged/hosts.ini
+cp -f ${BASE}/hosts.ini ${KUBESPRAYDIR}/inventory/merged/hosts.ini
 
 echo "  [+] Configuring Ansible ..."
-if [ -f ${PWD}/ansible.cfg ]; then
-	cat ${PWD}/ansible.cfg >> ${KUBESPRAYDIR}/ansible.cfg
+if [ -f ${BASE}/ansible.cfg ]; then
+	export ANSIBLE_CONFIG="${BASE}/ansible.cfg"
 fi
 
 echo "  [+] Installing requirements ..."
