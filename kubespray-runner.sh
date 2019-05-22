@@ -11,18 +11,7 @@ fi
 VERSION=`cat ${BASE}/kubespray.version`
 TMPDIR=`mktemp -d`
 
-APIHOST=`grep "\[kube-master\]" -A 1 ${BASE}/hosts.ini | tail -n1`
-
-ansible all -i ${BASE}/hosts.ini -a "uptime" &> ${TMPDIR}/stdout
-if [ $? -ne 0 ]; then
-	cat ${TMPDIR}/stdout
-	echo "Cluster not reachable. Quitting."
-	exit 1
-fi
-echo "  [+] All hosts in cluster reachable."
-
 echo ""
-
 echo "  [+] Downloading Kubespray ${VERSION} ..."
 wget -q -O ${TMPDIR}/${VERSION}.tar.gz https://codeload.github.com/kubernetes-sigs/kubespray/tar.gz/${VERSION}
 
