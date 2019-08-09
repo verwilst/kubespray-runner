@@ -9,7 +9,7 @@ Create an empty directory and cd into it.
 Add the branch or tag of the kubespray repository you want to use.
 
 ```bash
-echo release-2.10 > kubespray.version
+echo release-2.11 > kubespray.version
 ```
 ### Add a hosts.ini file
 
